@@ -9,11 +9,13 @@ module.exports = async function uptimeCommand(chatId, sendMessage) {
         )
         const msg = [
             `*System Stats*`,
+            ``,
             `💻 CPU: ${r['cpu-load']}% (${r['cpu-count']} cores @ ${r['cpu-frequency']}MHz)`,
             `🧠 RAM: ${memPct}% used`,
             `⏱ Uptime: ${r.uptime}`,
             `📦 ROS: ${r.version}`,
-            `🖥 Board: ${r['board-name']}`
+            `🖥 Board: ${r['board-name']}`,
+            `💾 Disk: ${Math.round(parseInt(r['free-hdd-space']) / 1073741824 * 10) / 10}GB free`
         ].join('\n')
         await sendMessage(chatId, msg)
     } catch (err) {

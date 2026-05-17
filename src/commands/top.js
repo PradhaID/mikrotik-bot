@@ -1,7 +1,16 @@
 const mk = require('../mikrotik')
 
-function toMbps(bits) {
-    return (parseInt(bits || 0) / 1000000).toFixed(1)
+function parseUptime(uptime = '0s') {
+    let seconds = 0
+    const d = uptime.match(/(\d+)d/)
+    const h = uptime.match(/(\d+)h/)
+    const m = uptime.match(/(\d+)m/)
+    const s = uptime.match(/(\d+)s/)
+    if (d) seconds += parseInt(d[1]) * 86400
+    if (h) seconds += parseInt(h[1]) * 3600
+    if (m) seconds += parseInt(m[1]) * 60
+    if (s) seconds += parseInt(s[1])
+    return seconds
 }
 
 module.exports = async function topCommand(chatId, sendMessage) {
@@ -12,28 +21,22 @@ module.exports = async function topCommand(chatId, sendMessage) {
             return sendMessage(chatId, 'No active PPPoE sessions.')
         }
 
-        // Sort by rx-byte descending
-        const sorted = active
-            .filter(s => s['rx-byte'] || s['tx-byte'])
-            .sort((a, b) => {
-                const aTotal = parseInt(a['rx-byte'] || 0) + parseInt(a['tx-byte'] || 0)
-                const bTotal = parseInt(b['rx-byte'] || 0) + parseInt(b['tx-byte'] || 0)
-                return bTotal - aTotal
-            })
+        // Sort by uptime descending (longest connected)
+        const sorted = [...active]
+            .sort((a, b) => parseUptime(b.uptime) - parseUptime(a.uptime))
             .slice(0, 10)
 
-        let msg = `*Top 10 PPPoE Clients (by session usage)*\n`
+        let msg = `*Top 10 PPPoE (Longest Connected)*\n`
+        msg += `_Total active: ${active.length} clients_\n`
+
         let i = 1
         for (const s of sorted) {
-            const rx = parseInt(s['rx-byte'] || 0)
-            const tx = parseInt(s['tx-byte'] || 0)
-            const rxGb = (rx / 1073741824).toFixed(2)
-            const txGb = (tx / 1073741824).toFixed(2)
-            const name = s.name || s.user || '-'
-            msg += `\n${i}. \`${name}\``
-            msg += `\n   ↓${rxGb}GB ↑${txGb}GB`
+            msg += `\n${i}. \`${s.name}\``
+            msg += `\n   📍 ${s.address}  ⏱ ${s.uptime}`
             i++
         }
+
+        msg += `\n\n_💡 For per-client bandwidth, use Queue Tree_`
 
         await sendMessage(chatId, msg)
     } catch (err) {

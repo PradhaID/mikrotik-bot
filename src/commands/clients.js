@@ -19,12 +19,17 @@ module.exports = async function clientsCommand(chatId, sendMessage) {
             if (comment.startsWith('HP :'))       hpCount++
         }
 
+        const total = pppCount + apCount + acCount + hpCount
+
         const msg = [
             `*Active Clients*`,
+            ``,
             `🔌 PPPoE: ${pppCount} online`,
             `📡 AP:       ${apCount} online`,
             `🏢 AC:       ${acCount} online`,
-            `📱 HP:       ${hpCount} online`
+            `📱 HP:       ${hpCount} online`,
+            ``,
+            `👥 Total: ${total} devices`
         ].join('\n')
 
         await sendMessage(chatId, msg)

@@ -1,4 +1,4 @@
-const fetch = (...args) => import('node-fetch').then(({default: f}) => f(...args))
+const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args))
 
 const TOKEN = process.env.TELEGRAM_TOKEN
 const API   = `https://api.telegram.org/bot${TOKEN}`
@@ -14,8 +14,7 @@ async function sendMessage(chatId, text, parseMode = 'Markdown') {
             disable_web_page_preview: true
         })
     })
-    const data = await res.json()
-    return data // returns message object including message_id
+    return res.json()
 }
 
 async function editMessage(chatId, messageId, text, parseMode = 'Markdown') {
