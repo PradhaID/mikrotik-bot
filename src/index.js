@@ -20,10 +20,15 @@ const PORT   = process.env.PORT  || 3011
 const ADMIN  = process.env.TELEGRAM_ADMIN_CHAT_ID
 const SECRET = process.env.TELEGRAM_WEBHOOK_SECRET
 
+const { checkStuckOnus }  = require('./stuckonu')
+const rebootOnuCommand    = require('./commands/rebootonu')
+
 app.use(express.json())
 
 // Alert monitoring every 60 seconds
 setInterval(checkAlerts, 60 * 1000)
+// Check stuck ONUs every 5 minutes
+setInterval(checkStuckOnus, 5 * 60 * 1000)
 
 app.post('/webhook', async (req, res) => {
     const secret = req.headers['x-telegram-bot-api-secret-token']
@@ -79,6 +84,9 @@ app.post('/webhook', async (req, res) => {
             case '/live':
                 await send('🔴 Starting live monitor...')
                 await startLive(chatId)
+                break
+            case '/rebootonu':
+                await rebootOnuCommand(chatId, arg, send)
                 break
             case '/stop':
                 if (stopLive(chatId)) await send('⏹ Live monitor stopped.')
